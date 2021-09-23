@@ -4,6 +4,19 @@ const UglifyWebpackPlugin = require("uglifyjs-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
+
+const pluginName = "ConsoleLogOnBuildWebpackPlugin";
+//自定义插件
+class ConsoleLogOnBuildWebpackPlugin {
+  apply(compiler) {
+    //开始执行的构字
+    compiler.hooks.run.tap(pluginName, (compilation) => {
+      console.log(compilation);
+      console.log("webpack 构建过程开始！");
+    });
+  }
+}
+
 module.exports = {
   //配置入口
   entry: path.resolve(__dirname, "src/index.tsx"),
@@ -11,13 +24,13 @@ module.exports = {
     //打包出口
     path: path.resolve(__dirname, "dist"),
     //打包出口
-    filename: "bundle.js",
+    filename: "bundle.[contenthash:8].js",
     //publicPath访问资源的路径，可以配置为相对路径，上线时配置的是cdn的地址。
     publicPath: "/",
   },
   //添加需要解析的文件
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".json"],
+    extensions: [".ts", ".tsx", ".js", ".json", "jsx"],
   },
   plugins: [
     //使用模板html,会在输出目录下面，生成引入打包好js的html文件
@@ -31,6 +44,7 @@ module.exports = {
       filename: "[name].css",
       chunkFilename: "[id].css",
     }),
+    new ConsoleLogOnBuildWebpackPlugin(),
   ],
   //webpack-dev-server提供了一个简单的Web服务器和实时热更新的能力
   //我们就可以通过webpack-dev-server --mode development , 来启动服务。
@@ -40,6 +54,8 @@ module.exports = {
     port: "8080",
     host: "localhost",
   },
+  //devtools，用于配置source-map，用于定位编译前后代码的位置
+  devtool: "source-map",
   module: {
     rules: [
       //加载支持处理css的lodader,可以将 css 文件转换成JS文件类型。
@@ -107,6 +123,7 @@ module.exports = {
   },
 
   optimization: {
+    //加上压缩配置，打包不会生成.map文件
     minimizer: [
       //配置压缩JS文件
       new UglifyWebpackPlugin({
