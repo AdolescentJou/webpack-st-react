@@ -23,8 +23,8 @@ module.exports = {
   output: {
     //打包出口
     path: path.resolve(__dirname, "dist"),
-    //打包出口
-    filename: "bundle.[contenthash:8].js",
+    //打包出口,使用chunkhash做为文件指纹
+    filename: "bundle.[chunkhash:8].js",
     //publicPath访问资源的路径，可以配置为相对路径，上线时配置的是cdn的地址。
     publicPath: "/",
   },
@@ -40,9 +40,10 @@ module.exports = {
     //输出前清空目录
     new CleanWebpackPlugin(),
     //分离css
+    //使用contenthash做为文件指纹
     new MiniCssExtractPlugin({
-      filename: "[name].css",
-      chunkFilename: "[id].css",
+      filename: "[name].[contenthash:8].css",
+      chunkFilename: "[id].[contenthash:8].css",
     }),
     new ConsoleLogOnBuildWebpackPlugin(),
   ],
@@ -86,7 +87,8 @@ module.exports = {
             options: {
               limit: 8192,
               outputPath: "images",
-              name: "[hash:10].[ext]",
+	      //[ext]代表取原文件的后缀名称
+              name: "[name].[hash:10].[ext]",
               esModule: false,
             },
           },
