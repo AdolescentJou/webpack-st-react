@@ -12,9 +12,7 @@ const pluginName = "ConsoleLogOnBuildWebpackPlugin";
 //自定义插件,开始构建的钩子
 class ConsoleLogOnBuildWebpackPlugin {
   apply(compiler) {
-    //开始执行构建的钩子方法
     compiler.hooks.run.tap(pluginName, (compilation) => {
-      //       console.log(compilation);
       console.log("webpack 构建过程开始！");
     });
   }
@@ -22,8 +20,8 @@ class ConsoleLogOnBuildWebpackPlugin {
 //构建完成的构字，处理构建错误信息
 class CatchErrorWebpackPlugin {
   apply(compiler) {
-    //开始执行构建的钩子方法
     compiler.hooks.done.tap(pluginName, (compilation) => {
+      //  这里的捕获错误信息暂时有点问题，先注释掉
       //       if (
       //         compilation.errors &&
       //         compilation.errors.length &&
@@ -97,8 +95,9 @@ module.exports = {
     //添加规范打印日志的插件
     new CatchErrorWebpackPlugin(),
     new FriendlyErrorsWebpackPlugin(),
+    //添加自定义插件
     new ConsoleLogOnBuildWebpackPlugin(),
-    //分离基础库，通过CND的方式引入，不打包进bundle，提高打包效率
+    //分离基础库，通过CND的方式引入，不打包进bundle，提高打包效率，这里使用了splitChunk所以注释这个
     //     new HtmlWebpackExternalsPlugin({
     //       externals: [
     //         {
@@ -113,7 +112,7 @@ module.exports = {
     //         },
     //       ],
     //     }),
-    //开启scopehositing的插件，已经弃用
+    //开启scopehositing的插件，减少打包体积，已经内置，所以不需要配置
     //new webpack.optimize.ModuleConcatenationPlugin()
   ].concat(HtmlWebpackPlugins),
   //webpack-dev-server提供了一个简单的Web服务器和实时热更新的能力
@@ -124,6 +123,7 @@ module.exports = {
     port: "8080",
     host: "localhost",
   },
+  //配置日志信息显示类型
   stats: "errors-only",
   //devtools，用于配置source-map，用于定位编译前后代码的位置
   devtool: "source-map",
@@ -137,6 +137,7 @@ module.exports = {
         exclude: /node_modules/,
         include: path.resolve(__dirname, "src"),
       },
+      //支持加载less的loader
       {
         test: /\.less/,
         use: [
@@ -196,7 +197,6 @@ module.exports = {
           },
         ],
       },
-
       //支持转义ES6/ES7/JSX
       {
         test: /\.jsx?$/,
@@ -226,8 +226,8 @@ module.exports = {
     ],
   },
 
+  //加上压缩配置，打包不会生成.map文件
   optimization: {
-    //加上压缩配置，打包不会生成.map文件
     minimizer: [
       //配置压缩JS文件,webpack内置，可以添加参数
       new UglifyWebpackPlugin({
@@ -236,8 +236,8 @@ module.exports = {
       //配置压缩CSS文件
       new OptimizeCssAssetsWebpackPlugin(),
     ],
+    //将react喝react-dom打包成基础包通过script引入
     splitChunks: {
-      //将react喝react-dom打包成基础包通过script引入
       cacheGroups: {
         commons: {
           test: /(react|react-dom)/,

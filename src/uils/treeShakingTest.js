@@ -1,3 +1,3 @@
 export default function treeShakingTest() {
-  console.log("这是以断treeshaking测试代码");
+  console.log("这是测试treeshaking测试代码");
 }
