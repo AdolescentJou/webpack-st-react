@@ -4,12 +4,10 @@ const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const UglifyWebpackPlugin = require("uglifyjs-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const OptimizeCssAssetsWebpackPlugin = require("optimize-css-assets-webpack-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 const HtmlWebpackExternalsPlugin = require("html-webpack-externals-plugin");
-const FriendlyErrorsWebpackPlugin = require("friendly-errors-webpack-plugin");
 const pluginName = "ConsoleLogOnBuildWebpackPlugin";
-//自定义插件,开始构建的钩子
+//自定义插件
 class ConsoleLogOnBuildWebpackPlugin {
   apply(compiler) {
     //开始执行构建的钩子方法
@@ -19,29 +17,12 @@ class ConsoleLogOnBuildWebpackPlugin {
     });
   }
 }
-//构建完成的构字，处理构建错误信息
-class CatchErrorWebpackPlugin {
-  apply(compiler) {
-    //开始执行构建的钩子方法
-    compiler.hooks.done.tap(pluginName, (compilation) => {
-      //       if (
-      //         compilation.errors &&
-      //         compilation.errors.length &&
-      //         process.argv.indexOf("--watch") == -1
-      //       ) {
-      //         console.log("build error");
-      //         process.exit(1);
-      //       }
-      console.log("构建完成");
-    });
-  }
-}
 
 //动态打包多页面
 const setMPA = () => {
   const entry = {};
   const HtmlWebpackPlugins = [];
-  const entryFiles = glob.sync(path.join(__dirname, "./src/index.tsx"));
+  const entryFiles = glob.sync(path.join(__dirname, "./server/index-server.js"));
   Object.keys(entryFiles).map((index) => {
     //todo:
     //这个地方实际上应该是动态获取src下面的目录名称（比如 /src/login/index）
@@ -52,7 +33,7 @@ const setMPA = () => {
       new HtmlWebpackPlugin({
         template: path.resolve(__dirname, "index.html"),
         //这里地方需要引入所有分离的公共包
-        chunks: ["index", "vendors"],
+        chunks: ["index-server"],
       })
     );
   });
@@ -72,9 +53,10 @@ module.exports = {
     //打包出口
     path: path.resolve(__dirname, "dist"),
     //打包出口,使用chunkhash做为文件指纹
-    filename: "bundle.[chunkhash:8].js",
+    filename: "index-server.js",
     //publicPath访问资源的路径，可以配置为相对路径，上线时配置的是cdn的地址。
     publicPath: "/",
+    libraryTarget: "umd",
   },
   mode: "development",
   //添加需要解析的文件
@@ -88,15 +70,6 @@ module.exports = {
     //     }),
     //输出前清空目录
     new CleanWebpackPlugin(),
-    //分离css
-    //使用contenthash做为文件指纹
-    new MiniCssExtractPlugin({
-      filename: "[name].[contenthash:8].css",
-      chunkFilename: "[id].[contenthash:8].css",
-    }),
-    //添加规范打印日志的插件
-    new CatchErrorWebpackPlugin(),
-    new FriendlyErrorsWebpackPlugin(),
     new ConsoleLogOnBuildWebpackPlugin(),
     //分离基础库，通过CND的方式引入，不打包进bundle，提高打包效率
     //     new HtmlWebpackExternalsPlugin({
@@ -124,7 +97,6 @@ module.exports = {
     port: "8080",
     host: "localhost",
   },
-  stats: "errors-only",
   //devtools，用于配置source-map，用于定位编译前后代码的位置
   devtool: "source-map",
   module: {
@@ -133,9 +105,7 @@ module.exports = {
       //使用MiniCssExtractPlugin 插件可以分离css文件
       {
         test: /\.css/,
-        use: [{ loader: MiniCssExtractPlugin.loader }, "css-loader"],
-        exclude: /node_modules/,
-        include: path.resolve(__dirname, "src"),
+        use: "css-loader",
       },
       {
         test: /\.less/,
@@ -177,7 +147,6 @@ module.exports = {
           },
         ],
         exclude: /node_modules/,
-        include: path.resolve(__dirname, "src"),
       },
       //file-loader: 解决CSS等文件中的引入图片路径问题
       //url-loader: 当图片小于limit的时候会把图片Base64编码，大于limit参数的时候还是使用file-loader进行拷贝
@@ -198,24 +167,10 @@ module.exports = {
       },
 
       //支持转义ES6/ES7/JSX
-      {
-        test: /\.jsx?$/,
-        use: [
-          {
-            loader: "babel-loader",
-            options: {
-              presets: ["@babel/preset-env", "@babel/react"],
-              plugins: [
-                [
-                  require("@babel/plugin-proposal-decorators"),
-                  { legacy: true },
-                ],
-              ],
-            },
-          },
-        ],
-        include: path.resolve(__dirname, "src"),
-        exclude: /node_modules/,
+      {  
+	test: /\.js?$/,  
+	exclude: /(node_modules|bower_components)/,  
+	loader: 'babel-loader', // 'babel-loader' is also a legal name to reference  
       },
       //配置支持ts和tsx
       {
@@ -233,27 +188,6 @@ module.exports = {
       new UglifyWebpackPlugin({
         parallel: 4,
       }),
-      //配置压缩CSS文件
-      new OptimizeCssAssetsWebpackPlugin(),
     ],
-    splitChunks: {
-      //将react喝react-dom打包成基础包通过script引入
-      cacheGroups: {
-        commons: {
-          test: /(react|react-dom)/,
-          name: "vendors",
-          chunks: "all",
-        },
-      },
-      //将各个页面引用次数为2以上的文件，打包成一个公共包
-      //       minSize: 0,
-      //       cacheGroups: {
-      //         commons: {
-      //           name: "commons",
-      //           chunks: "all",
-      //           minChunks: 2,
-      //         },
-      //       },
-    },
   },
 };
