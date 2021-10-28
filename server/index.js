@@ -1,6 +1,13 @@
 const fs = require("fs");
 const express = require("express");
 const path = require("path");
+/*
+
+	测试打包ssr的简单node服务器
+	打包完成之后
+	通过node index.js启动
+
+*/
 if (typeof window === "undefined") {
   global.window = {};
 }

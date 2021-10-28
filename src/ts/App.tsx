@@ -1,12 +1,10 @@
 import React from "react";
-import Tittle from "./Tittle.jsx";
-import ImageBox from "./ImgBox";
-import SyncImportText from "./SyncImportText";
+import ImageBox from "./components/ImgBox";
+import SyncImportText from "./components/SyncImportText";
 const App = () => {
   return (
     <div id="app">
       <SyncImportText />
-      <Tittle />
       <ImageBox />
     </div>
   );

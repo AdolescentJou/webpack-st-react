@@ -7,6 +7,15 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
 const HtmlWebpackExternalsPlugin = require("html-webpack-externals-plugin");
 const pluginName = "ConsoleLogOnBuildWebpackPlugin";
+/*
+
+
+	用于服务器渲染的打包配置文件
+	详细区别可以查看md文件
+
+
+
+*/
 //自定义插件
 class ConsoleLogOnBuildWebpackPlugin {
   apply(compiler) {
